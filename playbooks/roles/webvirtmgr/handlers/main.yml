@@ -1,0 +1,7 @@
+---
+# handlers file for webvirtmgr
+  - name: restart nginx
+    service: name=nginx state=restarted
+  - name: restart supervisord
+    service: name=supervisord state=restarted
+

@@ -1,0 +1,72 @@
+---
+- hosts: test
+  vars:
+    rabbit_config_tmpl: "/etc/ansible/playbooks/wolf/roles/rabbitmq/templates/rabbitmq.config.j2"
+    raabit_config: "/etc/rabbitmq"
+  tasks:
+    - name: install compiler and packages
+      yum: pkg={{ item }} state=present update_cache=yes
+      with_items:
+        - gcc
+        - glibc-devel
+        - make
+        - ncurses-devel
+        - openssl-devel
+        - autoconf
+
+    - name: Import EPEL GPG key
+      rpm_key:
+        key: http://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-7
+      state: present
+
+    - name: Add YUM repo
+      yum_repository:
+        name: epel
+        description: EPEL YUM repo
+        baseurl: https://dl.fedoraproject.org/pub/epel/$releasever/$basearch/
+        gpgcheck: yes
+
+    - name: Update the software package repository
+      yum:
+        name: '*'
+        update_cache: yes
+    - name: Disable selinux
+      selinux: state=disabled
+      
+    - name: Install RabbitMQ server
+      package:
+        name={{ item }} state=latest
+      with_items:
+        - rabbitmq-server
+
+    - name: sync config files
+      copy: src={{ rabbit_config_tmpl }} dest={{ raabit_config}}
+
+    - name: Start the RabbitMQ server
+      service:
+        name: rabbitmq-server
+        state: started
+
+    - wait_for:
+      port: 5672
+
+    - name: Start management UI
+      command: /usr/lib/rabbitmq/bin/rabbitmq-plugins enable rabbitmq_management
+      notify:
+      - Restart RabbitMQ server
+
+    - wait_for:
+      port: 15672
+
+    - name: Allow port 15672
+      command: firewall-cmd --add-port=15672/tcp --zone=public --permanent
+      notify: Reload firewalld
+
+  handlers:
+    - name: Restart RabbitMQ server
+      service:
+        name: rabbitmq-server
+        state: restarted
+    - name: Reload firewalld
+      service: name=firewall-cmd state=reloaded
+

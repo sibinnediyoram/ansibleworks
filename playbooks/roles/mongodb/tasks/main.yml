@@ -1,0 +1,22 @@
+---
+# tasks file for mongodb
+    - name: copy repo file to server
+      copy: src={{ mongo_repo }} dest=/etc/yum.repos.d
+
+    - name: install mongodb
+      yum: pkg={{ item }} state=present update_cache=yes
+      with_items:
+        - mongodb-org
+        - lsof
+
+    - name: disable selinux
+      selinux: state=disabled
+
+    - name: enable mongodb
+      service: name=mongod state=started
+      notify: Restart mongod
+
+    - name: firewall rule for mongo
+      command: firewall-cmd --add-port=27017/tcp --zone=public --permanent
+      notify: Reload firewalld
+

@@ -1,0 +1,63 @@
+---
+# tasks file for webvirtmgr
+#  tasks:
+   - name: install epel repo
+     yum: pkg=epel-release state=present update_cache=yes
+
+   - name: install packages
+     yum: pkg={{ item }} state=present update_cache=yes
+     with_items:
+       - git
+       - python-pip
+       - libvirt-python
+       - libxml2-python
+       - python-websockify
+       - supervisor
+       - nginx
+       - gcc
+       - python-devel
+
+   - name: install numpy
+     pip: name=numpy state=present
+   
+   - name: disable selinux
+     selinux: state=disabled
+
+   - name: create www directory
+     file: path=/var/www state=directory
+
+   - name: copy webvirtmgr source
+     copy: src={{ webvirtmgr_src }} dest={{ webvirtmgr_path }}
+
+   - name: Unarchive webvirtmgr.tar.gz that is already on the remote machine
+     unarchive: src={{ webvirtmgr_path }}/webvirtmgr.tar.gz  dest={{ webvirtmgr_path }} copy=no
+     register: result
+     ignore_errors: True
+
+   - debug: var=result
+
+   - debug: msg="Stop running the playbook if copy of webvirtmgr failed"
+     failed_when: result|failed
+
+   - name: copy nginx conf file
+     synchronize: src={{ webvirtmgr_ngnxconf }} dest=/etc/nginx/conf.d/webvirtmgr.conf
+     notify: restart nginx
+   
+   - name: copy supervisor ini file
+     synchronize: src={{ supervisor_ini }} dest=/etc/supervisord.d/webvirtmgr.ini
+
+   - name: install requirements.txt
+     pip: requirements={{ webvirtmgr_path }}/webvirtmgr/{{ reqs_file }}
+     notify: restart supervisord
+
+   - name: set nginx ownership for files
+     file: dest={{ webvirtmgr_path }}/webvirtmgr owner=nginx group=nginx recurse=yes
+   
+   - name: Enable firewalld
+     service: name=firewalld state=started enabled=yes
+
+   - name: Set firewalld rule webvirtmgr nginx
+     command: firewall-cmd --zone=public --add-port=8081/tcp --permanent
+
+   - name: Set firewalld rule supervisord
+     command: firewall-cmd --zone=public --add-port=6080/tcp --permanent

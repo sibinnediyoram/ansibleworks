@@ -1,0 +1,5 @@
+---
+- name: install webvirtmgr
+  hosts: test
+  roles:
+    - webvirtmgr

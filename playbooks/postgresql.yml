@@ -1,0 +1,36 @@
+---
+- hosts: client machine
+  vars:
+    postgresql_repo: "https://download.postgresql.org/pub/repos/yum/9.6/redhat/rhel-7-x86_64/pgdg-centos96-9.6-3.noarch.rpm"
+
+  tasks:
+    - name: install postgresql packages
+      yum: pkg={{ item }} state=present update_cache=yes
+      with_items:
+        - {{ postgresql_repo }}
+        - epel-release
+        - postgresql96
+        - postgresql96-server
+        - postgresql96-contrib
+        - postgresql96-libs
+
+    - name: initialize postgresql db
+      command: /usr/pgsql-9.6/bin/postgresql96-setup initdb
+
+    - name: enable postgresql
+      service: name=postgresql-9.6.service state=started
+      notify: Restart postgresql-9.6.service
+
+    - name: add port number to firewall
+      command: firewall-cmd --add-port=5432-5433/tcp --zone=public --permanent
+      notify: Reload firewalld
+
+  handlers:
+    - name: Restart postgresql
+      service: postgresql-9.6.service state: restarted
+    - name: Reload firewalld
+      service: name=firewalld state=reloaded
+    
+
+
+

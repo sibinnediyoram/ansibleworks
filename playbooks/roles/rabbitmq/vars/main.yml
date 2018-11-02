@@ -1,0 +1,5 @@
+---
+# vars file for rabbitmq
+    rabbit_config_tmpl: "/etc/ansible/playbooks/wolf/roles/rabbitmq/templates/rabbitmq.config.j2"
+    raabit_config: "/etc/rabbitmq"
+

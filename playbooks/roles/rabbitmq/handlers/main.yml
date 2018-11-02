@@ -1,0 +1,7 @@
+---
+# handlers file for rabbitmq
+  - name: Restart RabbitMQ server
+    service: name=rabbitmq-server state=restarted
+  - name: Reload firewalld
+    service: name=firewalld state=reloaded
+

@@ -1,0 +1,7 @@
+---
+# vars file for webvirtmgr
+    reqs_file: "requirements.txt"
+    webvirtmgr_path: "/var/www"
+    webvirtmgr_ngnxconf: "/etc/ansible/playbooks/wolf/roles/webvirtmgr/templates/webvirtmgr.conf.j2"
+    webvirtmgr_src: "/etc/ansible/packages/webvirtmgr.tar.gz"
+    supervisor_ini: "/etc/ansible/playbooks/wolf/roles/webvirtmgr/templates/webvirtmgr.ini.j2"

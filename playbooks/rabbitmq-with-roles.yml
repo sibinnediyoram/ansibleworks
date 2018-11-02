@@ -1,0 +1,5 @@
+---
+  - name: install rabbitmq server  
+    hosts: test
+    roles:
+      - rabbitmq 

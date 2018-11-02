@@ -1,0 +1,4 @@
+---
+# defaults file for webvirtmgr
+  when:
+    "ansible_os_family == 'CentOS'"
