@@ -1,0 +1,26 @@
+---
+- hosts: all
+  vars:
+    package: httpd
+    dbpackage: mariadb-server
+
+  tasks:
+    - name: gather facts from server
+      setup:
+        filter: ansible_hostname
+      delegate_to: web1
+
+    - name: install httpd service
+      yum: pkg="{{ package }}" state=present update_cache=yes
+      delegate_to: web1
+
+    - name: disable selinux
+      selinux: state=disabled
+
+    - name: start httpd service
+      service: name=httpd state=started
+      delegate_to: web1
+
+    - name: install db service
+      yum: pkg="{{ dbpackage }}" state=present
+      delegate_to: {{ db }}
